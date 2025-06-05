@@ -9,8 +9,8 @@ typedef struct {
 
 // Files
 typedef enum {
-    FIFO,
-    LIFO
+    FIFO = 1,
+    LIFO = 2,
 } TypeFile;
 
 
@@ -18,6 +18,7 @@ typedef enum {
 // ### MODEL (Parameter) declarations
 #define nb_commandes_totale 64 // Number of commands
 #define capa_stockage 64
+float t;
 // ### MODEL (Variable) declarations
 // Servers
 typedef enum {
@@ -46,16 +47,34 @@ int ressource_zone_attente; // 0: no AGV in front of the warehouse, 1: AGV1 in f
 typedef struct TypeZoneAttente {
     int commandes[capa_stockage];
     int nb_commandes; // Number of commands in the waiting area
-    TypeFile type;
+    int type;
 } TypeZoneAttente;
 TypeZoneAttente prod1, client2, warehouse;
 int file_ajouter(int num_commande, TypeZoneAttente zone){
-    if (zone.type == FIFO) {
-        printf("coucou FIFO\n");
+    int n = zone.nb_commandes;
+    if (n < capa_stockage) {
+        zone.commandes[n] = num_commande;
+        zone.nb_commandes++;
+        return 0; // Success
+    } else {
+        return -1; // Error: Zone full
     }
 };
 int file_retirer(TypeZoneAttente zone){
-
+    if (zone.nb_commandes > 0) {
+        switch (zone.type) {
+            case FIFO:
+                int num_commande = zone.commandes[0];
+                for (int i = 0; i < zone.nb_commandes - 1; i++) {
+                    zone.commandes[i] = zone.commandes[i + 1];
+                }
+                return num_commande; // Return the first command
+                break;
+            default:
+                printf("Error: Unknown file type %d\n", zone.type);
+                exit(-1);
+        }
+    }
 };
 
 
@@ -72,6 +91,29 @@ enum {
     FIN_DECHARGEMENT_AGV2_CLIENT2 = 7,
     ARRIVEE_AGV2_REPOS = 8,
 } TypeEvent;
+int Arrivee_AGV1_Prod1();
+int Fin_Chargement_AGV1_Prod1();
+int Arrivee_AGV1_Warehouse();
+int Fin_Dechargement_AGV1_Warehouse();
+int Arrivee_AGV2_Warehouse();
+int Fin_Chargement_AGV2_Warehouse();
+int Arrivee_AGV2_Client2();
+int Fin_Dechargement_AGV2_Client2();
+int Arrivee_AGV2_Repos();
+// ### EVENTS Functions
+int Arrivee_AGV1_Prod1() {
+    int num_commande = file_retirer(prod1);
+    agv1.etat = AGV_ETAT_EN_CHARGEMENT;
+    // Prévoir date fin chargement
+    float a,b;
+    a = agv1.chargement.mean;
+    b = agv1.chargement.stddev;
+    TypeSchedulerEvent event ={
+        t + N(a, b) * commandes[agv1.num_commande],
+        FIN_CHARGEMENT_AGV1_PROD1
+    };
+    Scheduler_add(event);
+}
 
 
 // ### SIMULATION Parameters
@@ -82,12 +124,13 @@ int Init_simulation(){
     event.date = Exp(10);
     event.type = FIN_CHARGEMENT_AGV1_PROD1;
     Scheduler_add(event);
+
+    t = 0.0f;
 }
 
 
 int Lancer_simulation(float *date){
     Init_simulation();
-    *date = 0.0f;
 
     while (Scheduler_get_nb_events() > 0) {
         TypeSchedulerEvent event = Scheduler_pop_next_event();
@@ -133,6 +176,9 @@ int Lancer_simulation(float *date){
             default:
                 printf("Unknown event type %d at time %.2f\n", event.type, *date);
         }
+
+
+        *date = t;
     }
 
     return 0;
