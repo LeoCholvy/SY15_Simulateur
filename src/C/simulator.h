@@ -143,7 +143,7 @@ int set_etat_agv2(TypeAGVEtat etat){
     } else {
         if (etat == AGV_ETAT_DISPONIBLE) {
             derniere_date_agv2_debut_dispo = t;
-        } else {
+        } else if (etat == AGV_ETAT_EN_ROUTE && agv2.etat == AGV_ETAT_DISPONIBLE) {
             temps_attente_agv2 += t - derniere_date_agv2_debut_dispo;
         }
     }
@@ -425,6 +425,7 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
             case ARRIVEE_AGV1_PROD1:
                 printf("ARRIVEE_AGV1_PROD1\n");
                 Arrivee_AGV1_Prod1();
+                printf("Nombres commandes dans Prod1: %d\n", prod1.nb_commandes);
         NBSNDBN ++;
                 break;
             case FIN_CHARGEMENT_AGV1_PROD1:
