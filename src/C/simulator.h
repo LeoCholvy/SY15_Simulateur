@@ -13,6 +13,8 @@ typedef enum {
     FIFO = 1,
     LIFO = 2,
     RANDOM = 3,
+    SMALLEST = 4,
+    BIGGEST = 5,
 } TypeFile;
 
 
@@ -64,7 +66,8 @@ typedef enum TypeEnumZonesAttente {
     zone_warehouse = 2,
 };
 
-int file_ajouter(int num_commande, enum TypeEnumZonesAttente z){
+int file_ajouter(int num_commande, int z){
+    // chosir la bonne zone de stockage en fonction de z
     TypeZoneAttente *zone;
     switch (z) {
         case zone_prod1:
@@ -80,6 +83,8 @@ int file_ajouter(int num_commande, enum TypeEnumZonesAttente z){
             printf("Error: Unknown waiting area type %d\n", z);
             exit(-1);
     }
+
+    // Ajouter la commande
     int n = zone->nb_commandes;
     if (n < capa_stockage) {
         zone->commandes[n] = num_commande;
@@ -90,12 +95,13 @@ int file_ajouter(int num_commande, enum TypeEnumZonesAttente z){
         }
         return 0; // Succès
     } else {
-        printf("Error: Waiting area %d is full\n", z);
+        printf("Error: Waiting area %d is full\ndate: %f", z, t);
         exit(-1);
     }
 };
 
-int file_retirer(enum TypeEnumZonesAttente z){
+int file_retirer(int z){
+    // Choisir la bonne zone de stockage en fonction de z
     TypeZoneAttente *zone;
     switch (z) {
         case zone_prod1:
@@ -111,6 +117,8 @@ int file_retirer(enum TypeEnumZonesAttente z){
             printf("Error: Unknown waiting area type %d\n", z);
             exit(-1);
     }
+
+    // Retirer une commande en fonction de la discipline de service de la zone
     if (zone->nb_commandes > 0) {
         switch (zone->type) {
             case FIFO: {
@@ -134,6 +142,40 @@ int file_retirer(enum TypeEnumZonesAttente z){
                 }
                 zone->nb_commandes--;
                 return num_commande;
+            }
+            case SMALLEST: {
+                // trouver le plus petit
+                int min_idx;
+                min_idx = 0;
+                for (int i=0; i<zone->nb_commandes; i++) {
+                    if (commandes[zone->commandes[i]] < min_idx) {
+                        min_idx = i;
+                    }
+                }
+                int num = commandes[zone->commandes[min_idx]];
+                // retirer le plus petit
+                for (int i = min_idx; i < zone->nb_commandes; i++) {
+                    zone->commandes[i] = zone->commandes[i + 1];
+                }
+                zone->nb_commandes --;
+                return num;
+            }
+            case BIGGEST: {
+                // trouver le plus grand
+                int max_idx;
+                max_idx = 0;
+                for (int i=0; i<zone->nb_commandes; i++) {
+                    if (zone->commandes[i] > max_idx) {
+                        max_idx = i;
+                    }
+                }
+                int num = zone->commandes[max_idx];
+                // retirer le plus grand
+                for (int i = max_idx; i < zone->nb_commandes; i++) {
+                    zone->commandes[i] = zone->commandes[i + 1];
+                }
+                zone->nb_commandes--;
+                return num;
             }
             default:
                 printf("Error: Unknown file type %d\n", zone->type);
@@ -402,7 +444,7 @@ int Init_simulation(){
     prod1.nb_commandes = 0;
     warehouse.type = FIFO;
     warehouse.nb_commandes = 0;
-    client2.type = FIFO;
+    client2.type = FIFO; // ne change rien
     client2.nb_commandes = 0;
 
     // commandes

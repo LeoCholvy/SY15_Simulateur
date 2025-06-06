@@ -12,7 +12,7 @@ df = pd.read_csv("../../results.csv", sep=",", header=0)
 
 # ----- LISTE DES COLONNES À TRAITER -----
 colonnes = [
-    ("temps total", "Temps total (toutes commandes)"),
+    ("temps total", "Temps total"),
     ("temps attente agv2", "Temps d'attente AGV2"),
     ("stock max warehouse", "Stock max dans le warehouse")
 ]
@@ -47,20 +47,21 @@ for col_name, titre_fr in colonnes:
     )
 
     # 2) Courbe normale en rouge
-    plt.plot(
-        x_vals,
-        pdf_vals,
-        color="red",
-        linestyle="-",
-        linewidth=2,
-        label="Loi normale\n$\mu={:.2f}$\n$\sigma={:.2f}$".format(mu, sigma)
-    )
+    if col_name != "stock max warehouse":
+        plt.plot(
+            x_vals,
+            pdf_vals,
+            color="red",
+            linestyle="-",
+            linewidth=2,
+            label="Loi normale\n$\mu={:.2f}$\n$\sigma={:.2f}$".format(mu, sigma)
+        )
 
     # 3) Ligne verticale à la moyenne (optionnel si vous voulez la repère mu)
     plt.axvline(mu, color="orange", linestyle="--", linewidth=1.5, label=f"Moyenne = {mu:.2f}")
 
     # Titres et légendes
-    plt.title(f"Histogramme & courbe normale : {titre_fr}")
+    plt.title(f"Histogramme & courbe normale : {titre_fr} FIFO FIFO x4")
     plt.xlabel(col_name)
     plt.ylabel("Densité")
     plt.legend(loc="upper right")
