@@ -9,7 +9,7 @@ typedef struct {
 #define MAX_EVENTS 9
 TypeSchedulerEvent events[MAX_EVENTS];
 int nb_events = 0;
-#define HORIZON 1000.0f // Simulation horizon
+#define HORIZON 5000.0f // Simulation horizon
 
 int Scheduler_add(TypeSchedulerEvent event){
     if (event.date > HORIZON) {

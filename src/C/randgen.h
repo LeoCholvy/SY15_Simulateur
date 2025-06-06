@@ -34,3 +34,7 @@ double N01() {
 double N(double n, double s) {
     return N01() * s + n;
 }
+
+int RandInt(int a, int b){
+    return a + (int)(U01() * (b - a + 1));
+}
