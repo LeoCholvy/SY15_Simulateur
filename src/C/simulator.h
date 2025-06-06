@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include "randgen.h"
 #include "scheduler.h"
@@ -11,6 +12,7 @@ typedef struct {
 typedef enum {
     FIFO = 1,
     LIFO = 2,
+    RANDOM = 3,
 } TypeFile;
 
 
@@ -84,7 +86,7 @@ int file_ajouter(int num_commande, enum TypeEnumZonesAttente z){
         zone->nb_commandes++;
         if (z == zone_warehouse) {
             check_max_stock_warehouse();
-            printf("nb dans warehouse: %d\n", warehouse.nb_commandes);
+            // printf("nb dans warehouse: %d\n", warehouse.nb_commandes);
         }
         return 0; // Succès
     } else {
@@ -118,6 +120,20 @@ int file_retirer(enum TypeEnumZonesAttente z){
                 }
                 zone->nb_commandes--;
                 return num_commande; // Retourne la première commande
+            }
+            case LIFO: {
+                int num_commande = zone->commandes[zone->nb_commandes - 1];
+                zone->nb_commandes--;
+                return num_commande; // Retourne la dernière commande
+            }
+            case RANDOM: {
+                int idx = RandInt(0, zone->nb_commandes - 1); // Sélectionne un index aléatoire
+                int num_commande = zone->commandes[idx];
+                for (int i = idx; i < zone->nb_commandes - 1; i++) {
+                    zone->commandes[i] = zone->commandes[i + 1];
+                }
+                zone->nb_commandes--;
+                return num_commande;
             }
             default:
                 printf("Error: Unknown file type %d\n", zone->type);
@@ -390,9 +406,13 @@ int Init_simulation(){
     client2.nb_commandes = 0;
 
     // commandes
-    for (int i=0; i<nb_commandes_totale; i++) {
-        commandes[i] = RandInt(1, 6);
+    int somme = 0, i = 0, r;
+    while (nb_commandes_totale - somme > 6) {
+        r = RandInt(1, 6);
+        commandes[i] = r;
         file_ajouter(i, zone_prod1);
+        somme += r;
+        i ++;
     }
 
     // metrics
@@ -415,49 +435,48 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
     Init_simulation();
 
     while (Scheduler_get_nb_events() > 0) {
-        printf("Scheduler: ");
         TypeSchedulerEvent event = Scheduler_pop_next_event();
         t = event.date;
-        printf("Date: %.2f\n", event.date);
-        printf("Nombres events prévus : %d\n", Scheduler_get_nb_events());
+        // printf("Date: %.2f\n", event.date);
+        // printf("Nombres events prévus : %d\n", Scheduler_get_nb_events());
 
         switch (event.type) {
             case ARRIVEE_AGV1_PROD1:
-                printf("ARRIVEE_AGV1_PROD1\n");
+                // printf("ARRIVEE_AGV1_PROD1\n");
                 Arrivee_AGV1_Prod1();
-                printf("Nombres commandes dans Prod1: %d\n", prod1.nb_commandes);
+                // printf("Nombres commandes dans Prod1: %d\n", prod1.nb_commandes);
         NBSNDBN ++;
                 break;
             case FIN_CHARGEMENT_AGV1_PROD1:
-                printf("FIN_CHARGEMENT_AGV1_PROD1\n");
+                // printf("FIN_CHARGEMENT_AGV1_PROD1\n");
                 Fin_Chargement_AGV1_Prod1();
                 break;
             case ARRIVEE_AGV1_WAREHOUSE:
-                printf("ARRIVEE_AGV1_WAREHOUSE\n");
+                // printf("ARRIVEE_AGV1_WAREHOUSE\n");
                 Arrivee_AGV1_Warehouse();
                 break;
             case FIN_DECHARGEMENT_AGV1_WAREHOUSE:
-                printf("FIN_DECHARGEMENT_AGV1_WAREHOUSE\n");
+                // printf("FIN_DECHARGEMENT_AGV1_WAREHOUSE\n");
                 Fin_Dechargement_AGV1_Warehouse();
                 break;
             case ARRIVEE_AGV2_WAREHOUSE:
-                printf("ARRIVEE_AGV2_WAREHOUSE\n");
+                // printf("ARRIVEE_AGV2_WAREHOUSE\n");
                 Arrivee_AGV2_Warehouse();
                 break;
             case FIN_CHARGEMENT_AGV2_WAREHOUSE:
-                printf("FIN_CHARGEMENT_AGV2_WAREHOUSE\n");
+                // printf("FIN_CHARGEMENT_AGV2_WAREHOUSE\n");
                 Fin_Chargement_AGV2_Warehouse();
                 break;
             case ARRIVEE_AGV2_CLIENT2:
-                printf("ARRIVEE_AGV2_CLIENT2\n");
+                // printf("ARRIVEE_AGV2_CLIENT2\n");
                 Arrivee_AGV2_Client2();
                 break;
             case FIN_DECHARGEMENT_AGV2_CLIENT2:
-                printf("FIN_DECHARGEMENT_AGV2_CLIENT2\n");
+                // printf("FIN_DECHARGEMENT_AGV2_CLIENT2\n");
                 Fin_Dechargement_AGV2_Client2();
                 break;
             case ARRIVEE_AGV2_REPOS:
-                printf("ARRIVEE_AGV2_REPOS\n");
+                // printf("ARRIVEE_AGV2_REPOS\n");
                 Arrivee_AGV2_Repos();
                 break;
             default:
@@ -468,7 +487,5 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
         *p_temps_attente_agv2 = temps_attente_agv2;
         *p_stock_max_warehouse = stock_max_warehouse;
     }
-
-        printf("NBSNDBN: %d\n", NBSNDBN);
     return 0;
 }
