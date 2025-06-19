@@ -148,7 +148,7 @@ int file_retirer(int z){
                 int min_idx;
                 min_idx = 0;
                 for (int i=0; i<zone->nb_commandes; i++) {
-                    if (commandes[zone->commandes[i]] < min_idx) {
+                    if (commandes[zone->commandes[i]] < commandes[zone->commandes[min_idx]]) {
                         min_idx = i;
                     }
                 }
@@ -165,7 +165,7 @@ int file_retirer(int z){
                 int max_idx;
                 max_idx = 0;
                 for (int i=0; i<zone->nb_commandes; i++) {
-                    if (zone->commandes[i] > max_idx) {
+                    if (zone->commandes[i] > commandes[zone->commandes[max_idx]]) {
                         max_idx = i;
                     }
                 }
@@ -483,10 +483,10 @@ int Init_simulation(){
     agv1.etat = AGV_ETAT_EN_ROUTE;
     agv2.num_commande = -1;
     agv2.etat = AGV_ETAT_DISPONIBLE;
-    agv1.chargement.mean = 17.38f; agv2.chargement.mean = 17.38f;
-    agv1.chargement.stddev = 0.1697056275f; agv2.chargement.stddev = 0.1697056275f;
-    agv1.dechargement.mean = 19.215f; agv2.dechargement.mean = 19.215f;
-    agv1.dechargement.mean = 3.938584771f; agv2.dechargement.mean = 3.938584771f;
+    agv1.chargement.mean = 17.38f;           agv2.chargement.mean = 17.38f;
+    agv1.chargement.stddev = 0.1697056275f;  agv2.chargement.stddev = 0.1697056275f;
+    agv1.dechargement.mean = 19.215f;        agv2.dechargement.mean = 19.215f;
+    agv1.dechargement.stddev = 3.938584771f; agv2.dechargement.stddev = 3.938584771f;
     agv1.repos_prod1.mean = 24.96f;
     agv1.repos_prod1.stddev = 1.35764502f;
     agv1.prod1_warehouse.mean = 29.205f;
@@ -495,15 +495,15 @@ int Init_simulation(){
     agv1.warehouse_repos.stddev = 2.71529004f;
     agv2.repos_warehouse.mean = 27.29f;
     agv2.repos_warehouse.stddev = 0.4384062043f;
-    agv2.warehouse_client2.mean = 28.42f * 2;
+    agv2.warehouse_client2.mean = 28.42f;
     agv2.warehouse_client2.stddev = 1.244507935f;
     agv2.client2_repos.mean = 20.25f;
     agv2.client2_repos.stddev = 0.7778174593f;
 
     ressource_zone_attente = 0;
 
-    prod1.type = SMALLEST;
-    warehouse.type = BIGGEST;
+    prod1.type = FIFO;
+    warehouse.type = FIFO;
     client2.type = FIFO;
     prod1.nb_commandes = 0;
     warehouse.nb_commandes = 0;
@@ -596,5 +596,23 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
         printf(" != %d\n", debug_nb_commandes);
         exit(-1);
     }
+
+    // printf("Nombre commandes : %d\n", debug_nb_commandes);
     return 0;
 }
+
+
+// int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_max_warehouse){
+//     Init_simulation();
+//     // printf("Commandes");
+//     // for (int i = 0; i < debug_nb_commandes; i++) {
+//     //     printf("Commande %d : %d produits", i, commandes[i]);
+//     //     printf(" | N(a,b) = %f", N(agv2.dechargement.mean, agv2.dechargement.stddev));
+//     //     printf("\n");
+//     // }
+//     // for (int i = 0; i < 100; i++) {
+//     //     printf("%f\n", N(19.0f, 3.0f));
+//     // }
+//     printf("%f\n", agv2.dechargement.mean);
+//     return 0;
+// }

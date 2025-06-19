@@ -45,7 +45,7 @@ for col_name, titre_fr in colonnes:
     # 1) Histogramme en densité
     sns.histplot(
         data,
-        bins=30,
+        bins=50,
         kde=False,
         stat="density",  # Normalise pour obtenir une densité
         color="steelblue",
@@ -98,7 +98,7 @@ for col_name, titre_fr in colonnes:
     plt.axvline(mu, color="orange", linestyle="--", linewidth=1.5, label=f"Moyenne = {mu:.2f}")
 
     # Titres et légendes
-    plt.title(f"Histogramme & courbe normale : {titre_fr} x2 SPT LPT")
+    plt.title(f"Histogramme & courbe normale : {titre_fr} FIFO FIFO")
     plt.xlabel(col_name)
     plt.ylabel("Densité")
     plt.legend(loc="upper right")
