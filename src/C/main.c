@@ -3,7 +3,7 @@
 #include <math.h>
 #include "simulator.h"
 
-#define ITERATIONS 1000
+#define ITERATIONS 10000
 
 // Calcul des statistiques pour un tableau de flottants
 void calculate_stats_float(float arr[], int n, float *mean, float *stddev) {
@@ -65,8 +65,8 @@ int main(void){
 
     // Affichage des statistiques dans la console
     printf("\nStatistiques:\n");
-    printf("%-25s: moyenne = %.2f, ecart type = %.2f\n", "temps total", mean_total, std_total);
-    printf("%-25s: moyenne = %.2f, ecart type = %.2f\n", "temps attente agv2", mean_att, std_att);
+    printf("%-25s: moyenne = %.2f (%.2fmin), ecart type = %.2f\n", "temps total", mean_total, mean_total/60, std_total);
+    printf("%-25s: moyenne = %.2f (%.2fmin), ecart type = %.2f\n", "temps attente agv2", mean_att, mean_att/60, std_att);
     printf("%-25s: moyenne = %.2f, ecart type = %.2f\n", "stock max warehouse", mean_stock, std_stock);
 
     // Génération du fichier CSV

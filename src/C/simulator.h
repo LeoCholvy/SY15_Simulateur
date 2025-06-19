@@ -314,6 +314,47 @@ int Fin_Dechargement_AGV1_Warehouse() {
         Ajouter(event);
     }
 }
+// pas de repos AGV2
+// int Fin_Dechargement_AGV1_Warehouse() {
+//     file_ajouter(agv1.num_commande, zone_warehouse);
+//     agv1.num_commande = -1; // Reset command number
+//     ressource_zone_attente = 0; // Release the resource
+//
+//     agv1.etat = AGV_ETAT_EN_ROUTE;
+//     if (prod1.nb_commandes > 0) {
+//         float a, b;
+//         a = agv1.prod1_warehouse.mean;
+//         b = agv1.prod1_warehouse.stddev;
+//         TypeSchedulerEvent event ={
+//             t + N(a,b),
+//             ARRIVEE_AGV1_PROD1,
+//         };
+//         Ajouter(event);
+//     } else {
+//         // On ne fait plus rien AGV1 a fini son travail
+//     }
+//
+//     if (agv2.etat == AGV_ETAT_EN_PAUSE) {
+//         // Arrivée immediate de l'AGV2 à warehouse
+//         TypeSchedulerEvent event ={
+//             t,
+//             ARRIVEE_AGV2_WAREHOUSE,
+//         };
+//         Ajouter(event);
+//     } else if (agv2.etat == AGV_ETAT_DISPONIBLE) {
+//         // faire venir AGV2 a warehouse
+//         // agv2.etat = AGV_ETAT_EN_ROUTE;
+//         set_etat_agv2(AGV_ETAT_EN_ROUTE);
+//         float a, b;
+//         a = agv2.warehouse_client2.mean;
+//         b = agv2.warehouse_client2.stddev;
+//         TypeSchedulerEvent event ={
+//             t + N(a,b),
+//             ARRIVEE_AGV2_WAREHOUSE,
+//         };
+//         Ajouter(event);
+//     }
+// }
 int Arrivee_AGV2_Warehouse(){
     if (ressource_zone_attente == 0) {
         ressource_zone_attente = 2;
@@ -396,6 +437,27 @@ int Fin_Dechargement_AGV2_Client2(){
         Ajouter(event);
     }
 }
+// pas de repos
+// int Fin_Dechargement_AGV2_Client2(){
+//     file_ajouter(agv2.num_commande, zone_client2);
+//     agv2.num_commande = -1;
+//     if (warehouse.nb_commandes > 0) {
+//         // aller vers warehouse
+//         // agv2.etat = AGV_ETAT_EN_ROUTE;
+//         set_etat_agv2(AGV_ETAT_EN_ROUTE);
+//         float a, b;
+//         a = agv2.warehouse_client2.mean;
+//         b = agv2.warehouse_client2.stddev;
+//         TypeSchedulerEvent event ={
+//             t + N(a,b),
+//             ARRIVEE_AGV2_WAREHOUSE,
+//         };
+//         Ajouter(event);
+//     } else {
+//         // en repos !
+//         set_etat_agv2(AGV_ETAT_DISPONIBLE);
+//     }
+// }
 int Arrivee_AGV2_Repos(){
     if (warehouse.nb_commandes > 0) {
         // aller vers warehouse
@@ -421,30 +483,30 @@ int Init_simulation(){
     agv1.etat = AGV_ETAT_EN_ROUTE;
     agv2.num_commande = -1;
     agv2.etat = AGV_ETAT_DISPONIBLE;
-    agv1.chargement.mean = 17.96f; agv2.chargement.mean = 17.96f;
-    agv1.chargement.stddev = 0.93; agv2.chargement.stddev = 0.93;
-    agv1.dechargement.mean = 17.97; agv2.dechargement.mean = 17.97;
-    agv1.dechargement.mean = 0.71f; agv2.dechargement.mean = 0.71f;
-    agv1.repos_prod1.mean = 26.58f;
-    agv1.repos_prod1.stddev = 0.67;
-    agv1.prod1_warehouse.mean = 25.96f;
-    agv1.prod1_warehouse.stddev = 3.18f;
-    agv1.warehouse_repos.mean = 18.34f;
-    agv1.warehouse_repos.stddev = 2.20f;
-    agv2.repos_warehouse.mean = 28.27f;
-    agv2.repos_warehouse.stddev = 1.62f;
-    agv2.warehouse_client2.mean = 30.04f;
-    agv2.warehouse_client2.stddev = 1.75f;
-    agv2.client2_repos.mean = 21.58f;
-    agv2.client2_repos.stddev = 1.22f;
+    agv1.chargement.mean = 17.38f; agv2.chargement.mean = 17.38f;
+    agv1.chargement.stddev = 0.1697056275f; agv2.chargement.stddev = 0.1697056275f;
+    agv1.dechargement.mean = 19.215f; agv2.dechargement.mean = 19.215f;
+    agv1.dechargement.mean = 3.938584771f; agv2.dechargement.mean = 3.938584771f;
+    agv1.repos_prod1.mean = 24.96f;
+    agv1.repos_prod1.stddev = 1.35764502f;
+    agv1.prod1_warehouse.mean = 29.205f;
+    agv1.prod1_warehouse.stddev = 0.007071067812f;
+    agv1.warehouse_repos.mean = 16.98f;
+    agv1.warehouse_repos.stddev = 2.71529004f;
+    agv2.repos_warehouse.mean = 27.29f;
+    agv2.repos_warehouse.stddev = 0.4384062043f;
+    agv2.warehouse_client2.mean = 28.42f * 2;
+    agv2.warehouse_client2.stddev = 1.244507935f;
+    agv2.client2_repos.mean = 20.25f;
+    agv2.client2_repos.stddev = 0.7778174593f;
 
     ressource_zone_attente = 0;
 
-    prod1.type = FIFO;
+    prod1.type = SMALLEST;
+    warehouse.type = BIGGEST;
+    client2.type = FIFO;
     prod1.nb_commandes = 0;
-    warehouse.type = FIFO;
     warehouse.nb_commandes = 0;
-    client2.type = FIFO; // ne change rien
     client2.nb_commandes = 0;
 
     // commandes
@@ -465,7 +527,9 @@ int Init_simulation(){
 
     // Scheduler
     Scheduler_reset();
-    TypeSchedulerEvent event = {0.0f, ARRIVEE_AGV1_PROD1};
+    double a = agv1.repos_prod1.mean;
+    double b = agv1.repos_prod1.stddev;
+    TypeSchedulerEvent event = {N(a,b), ARRIVEE_AGV1_PROD1};
     Ajouter(event);
 
     // Others
