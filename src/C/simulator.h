@@ -314,7 +314,7 @@ int Fin_Dechargement_AGV1_Warehouse() {
         Ajouter(event);
     }
 }
-// pas de repos AGV2
+// // pas de repos AGV2
 // int Fin_Dechargement_AGV1_Warehouse() {
 //     file_ajouter(agv1.num_commande, zone_warehouse);
 //     agv1.num_commande = -1; // Reset command number

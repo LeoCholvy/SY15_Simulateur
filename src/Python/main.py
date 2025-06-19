@@ -75,30 +75,31 @@ for col_name, titre_fr in colonnes:
     plt.axvspan(borne_inf, borne_sup, color="red", alpha=0.2,
                 label=f"CI 99% : [{borne_inf:.1f}, {borne_sup:.1f}]")
 
-    ### GAMMA FITTING ###
-    # Estimation des paramètres de la loi gamma
-    shape, loc, scale = gamma.fit(data)
-    # Définition des bornes pour la courbe
-    xmin, xmax = data.min(), data.max()
-    x_vals = np.linspace(xmin, xmax, 200)
-    # Calcul de la densité de la loi gamma
-    gamma_pdf = gamma.pdf(x_vals, shape, loc=loc, scale=scale)
-    # 2) Courbe de densité gamma
-    plt.plot(
-        x_vals,
-        gamma_pdf,
-        color="green",
-        linestyle="-",
-        linewidth=2,
-        label="Loi gamma\nshape={:.2f}\nscale={:.2f}".format(shape, scale)
-    )
+    if col_name == "temps total":
+        ### GAMMA FITTING ###
+        # Estimation des paramètres de la loi gamma
+        shape, loc, scale = gamma.fit(data)
+        # Définition des bornes pour la courbe
+        xmin, xmax = data.min(), data.max()
+        x_vals = np.linspace(xmin, xmax, 200)
+        # Calcul de la densité de la loi gamma
+        gamma_pdf = gamma.pdf(x_vals, shape, loc=loc, scale=scale)
+        # 2) Courbe de densité gamma
+        plt.plot(
+            x_vals,
+            gamma_pdf,
+            color="green",
+            linestyle="-",
+            linewidth=2,
+            label="Loi gamma\nshape={:.2f}\nscale={:.2f}".format(shape, scale)
+        )
 
 
     # 3) Ligne verticale à la moyenne (optionnel si vous voulez la repère mu)
     plt.axvline(mu, color="orange", linestyle="--", linewidth=1.5, label=f"Moyenne = {mu:.2f}")
 
     # Titres et légendes
-    plt.title(f"Histogramme & courbe normale : {titre_fr} FIFO FIFO")
+    plt.title(f"Histogramme & courbe normale : {titre_fr} 1 produit")
     plt.xlabel(col_name)
     plt.ylabel("Densité")
     plt.legend(loc="upper right")
