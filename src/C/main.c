@@ -3,7 +3,7 @@
 #include <math.h>
 #include "simulator.h"
 
-#define ITERATIONS 100
+#define ITERATIONS 1000
 
 // Calcul des statistiques pour un tableau de flottants
 void calculate_stats_float(float arr[], int n, float *mean, float *stddev) {

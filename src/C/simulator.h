@@ -26,11 +26,11 @@ float t;
 // ### MODEL (Variable) declarations
 // Servers
 typedef enum {
-    AGV_ETAT_DISPONIBLE, // Available
-    AGV_ETAT_EN_CHARGEMENT, // Loading
-    AGV_ETAT_EN_DECHARGEMENT, // Unloading
-    AGV_ETAT_EN_ROUTE, // In transit
-    AGV_ETAT_EN_PAUSE // Paused
+    AGV_ETAT_DISPONIBLE = 0, // Available
+    AGV_ETAT_EN_CHARGEMENT = 1, // Loading
+    AGV_ETAT_EN_DECHARGEMENT = 2, // Unloading
+    AGV_ETAT_EN_ROUTE = 3, // In transit
+    AGV_ETAT_EN_PAUSE = 4 // Paused
 } TypeAGVEtat;
 typedef struct {
     TypeNormalParameter repos_prod1;
@@ -245,7 +245,7 @@ int Arrivee_AGV1_Prod1() {
         FIN_CHARGEMENT_AGV1_PROD1
     };
     agv1.num_commande = num_commande;
-    Scheduler_add(event);
+    Ajouter(event);
 }
 int Fin_Chargement_AGV1_Prod1() {
     agv1.etat = AGV_ETAT_EN_ROUTE;
@@ -256,7 +256,7 @@ int Fin_Chargement_AGV1_Prod1() {
         t + N(a, b),
         ARRIVEE_AGV1_WAREHOUSE
     };
-    Scheduler_add(event);
+    Ajouter(event);
 }
 int Arrivee_AGV1_Warehouse() {
     if (ressource_zone_attente == 0) {
@@ -269,7 +269,7 @@ int Arrivee_AGV1_Warehouse() {
             t + N(a, b) * commandes[agv1.num_commande],
             FIN_DECHARGEMENT_AGV1_WAREHOUSE
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else {
         agv1.etat = AGV_ETAT_EN_PAUSE;
     }
@@ -288,7 +288,7 @@ int Fin_Dechargement_AGV1_Warehouse() {
             t + N(a,b),
             ARRIVEE_AGV1_PROD1,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else {
         // On ne fait plus rien AGV1 a fini son travail
     }
@@ -299,7 +299,7 @@ int Fin_Dechargement_AGV1_Warehouse() {
             t,
             ARRIVEE_AGV2_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else if (agv2.etat == AGV_ETAT_DISPONIBLE) {
         // faire venir AGV2 a warehouse
         // agv2.etat = AGV_ETAT_EN_ROUTE;
@@ -311,7 +311,7 @@ int Fin_Dechargement_AGV1_Warehouse() {
             t + N(a,b),
             ARRIVEE_AGV2_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     }
 }
 int Arrivee_AGV2_Warehouse(){
@@ -329,7 +329,7 @@ int Arrivee_AGV2_Warehouse(){
             t + N(a,b) * commandes[num_commandes],
             FIN_CHARGEMENT_AGV2_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else {
         // agv2.etat = AGV_ETAT_EN_PAUSE;
         set_etat_agv2(AGV_ETAT_EN_PAUSE);
@@ -345,7 +345,7 @@ int Fin_Chargement_AGV2_Warehouse(){
         t + N(a,b),
         ARRIVEE_AGV2_CLIENT2,
     };
-    Scheduler_add(event);
+    Ajouter(event);
 
     if (agv1.etat == AGV_ETAT_EN_PAUSE) {
         // arrivée imminente agv1 warehouse
@@ -353,7 +353,7 @@ int Fin_Chargement_AGV2_Warehouse(){
             t,
             ARRIVEE_AGV1_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     }
 }
 int Arrivee_AGV2_Client2(){
@@ -366,7 +366,7 @@ int Arrivee_AGV2_Client2(){
         t + N(a,b) * commandes[agv2.num_commande],
         FIN_DECHARGEMENT_AGV2_CLIENT2,
     };
-    Scheduler_add(event);
+    Ajouter(event);
 }
 int Fin_Dechargement_AGV2_Client2(){
     file_ajouter(agv2.num_commande, zone_client2);
@@ -382,7 +382,7 @@ int Fin_Dechargement_AGV2_Client2(){
             t + N(a,b),
             ARRIVEE_AGV2_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else {
         // aller vers repos
         set_etat_agv2(AGV_ETAT_EN_ROUTE);
@@ -393,7 +393,7 @@ int Fin_Dechargement_AGV2_Client2(){
             t + N(a,b),
             ARRIVEE_AGV2_REPOS,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     }
 }
 int Arrivee_AGV2_Repos(){
@@ -407,14 +407,14 @@ int Arrivee_AGV2_Repos(){
             t + N(a,b),
             ARRIVEE_AGV2_WAREHOUSE,
         };
-        Scheduler_add(event);
+        Ajouter(event);
     } else {
         set_etat_agv2(AGV_ETAT_DISPONIBLE);
     }
 }
 
 
-
+int debug_nb_commandes;
 // ### SIMULATION Parameters
 int Init_simulation(){
     agv1.num_commande = -1;
@@ -456,6 +456,7 @@ int Init_simulation(){
         somme += r;
         i ++;
     }
+    debug_nb_commandes = i;
 
     // metrics
     temps_attente_agv2 = 0.0f;
@@ -465,19 +466,17 @@ int Init_simulation(){
     // Scheduler
     Scheduler_reset();
     TypeSchedulerEvent event = {0.0f, ARRIVEE_AGV1_PROD1};
-    Scheduler_add(event);
+    Ajouter(event);
 
     // Others
     t = 0.0f;
 }
 
-int NBSNDBN = 0;
-
 int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_max_warehouse) {
     Init_simulation();
 
     while (Scheduler_get_nb_events() > 0) {
-        TypeSchedulerEvent event = Scheduler_pop_next_event();
+        TypeSchedulerEvent event = Supprimer();
         t = event.date;
         // printf("Date: %.2f\n", event.date);
         // printf("Nombres events prévus : %d\n", Scheduler_get_nb_events());
@@ -487,7 +486,6 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
                 // printf("ARRIVEE_AGV1_PROD1\n");
                 Arrivee_AGV1_Prod1();
                 // printf("Nombres commandes dans Prod1: %d\n", prod1.nb_commandes);
-        NBSNDBN ++;
                 break;
             case FIN_CHARGEMENT_AGV1_PROD1:
                 // printf("FIN_CHARGEMENT_AGV1_PROD1\n");
@@ -524,10 +522,15 @@ int Lancer_simulation(float *p_date, float *p_temps_attente_agv2, int *p_stock_m
             default:
                 printf("Unknown event type %d at time %.2f\n", event.type, *p_date);
         }
-
-        *p_date = t;
-        *p_temps_attente_agv2 = temps_attente_agv2;
-        *p_stock_max_warehouse = stock_max_warehouse;
+    }
+    *p_date = t;
+    *p_temps_attente_agv2 = temps_attente_agv2;
+    *p_stock_max_warehouse = stock_max_warehouse;
+    if (client2.nb_commandes != debug_nb_commandes) {
+        printf("Toutes les commandes n'ont pas ete traitees\n");
+        printf("%d", client2.nb_commandes);
+        printf(" != %d\n", debug_nb_commandes);
+        exit(-1);
     }
     return 0;
 }
